@@ -15,6 +15,9 @@ static struct zmk_rpc_custom_subsystem_meta template_feature_meta = {
     ZMK_RPC_CUSTOM_SUBSYSTEM_UI_URLS("http://cormoran.github.io/zmk-module-template/"),
     // Unsecured is suggested by default to avoid unlocking in un-reliable
     // environments.
+    // The web template already implements the unlock prompt/retry flow (see
+    // web/src/App.tsx), so switching this to ZMK_STUDIO_RPC_HANDLER_SECURED
+    // requires no web changes.
     .security = ZMK_STUDIO_RPC_HANDLER_UNSECURED,
 };
 
