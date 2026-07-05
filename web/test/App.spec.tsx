@@ -13,7 +13,42 @@ jest.mock("@zmkfirmware/zmk-studio-ts-client/transport/serial", () => ({
   connect: jest.fn(),
 }));
 
+jest.mock("@zmkfirmware/zmk-studio-ts-client/transport/gatt", () => ({
+  connect: jest.fn(),
+}));
+
+// jsdom defines neither navigator.serial nor navigator.bluetooth by default;
+// define/delete them per test to exercise feature detection.
+function setTransportSupport({
+  serial,
+  bluetooth,
+}: {
+  serial: boolean;
+  bluetooth: boolean;
+}) {
+  if (serial) {
+    Object.defineProperty(navigator, "serial", {
+      value: {},
+      configurable: true,
+    });
+  } else {
+    delete (navigator as { serial?: unknown }).serial;
+  }
+  if (bluetooth) {
+    Object.defineProperty(navigator, "bluetooth", {
+      value: {},
+      configurable: true,
+    });
+  } else {
+    delete (navigator as { bluetooth?: unknown }).bluetooth;
+  }
+}
+
 describe("App Component", () => {
+  afterEach(() => {
+    setTransportSupport({ serial: false, bluetooth: false });
+  });
+
   describe("Basic Rendering", () => {
     it("should render the application header", () => {
       render(<App />);
@@ -22,16 +57,52 @@ describe("App Component", () => {
       expect(screen.getByText(/Custom Studio RPC Demo/i)).toBeInTheDocument();
     });
 
-    it("should render connection button when disconnected", () => {
-      render(<App />);
-
-      expect(screen.getByText(/Connect Serial/i)).toBeInTheDocument();
-    });
-
-    it("should render footer", () => {
+    it("should render footer with repo link", () => {
       render(<App />);
 
       expect(screen.getByText(/Template Module/i)).toBeInTheDocument();
+      const link = screen.getByRole("link", {
+        name: "cormoran/zmk-module-template",
+      });
+      expect(link).toHaveAttribute(
+        "href",
+        "https://github.com/cormoran/zmk-module-template"
+      );
+    });
+  });
+
+  describe("Transport feature detection", () => {
+    it("shows both connect buttons when both transports are supported", () => {
+      setTransportSupport({ serial: true, bluetooth: true });
+      render(<App />);
+
+      expect(screen.getByText(/Connect USB/i)).toBeInTheDocument();
+      expect(screen.getByText(/Connect Bluetooth/i)).toBeInTheDocument();
+    });
+
+    it("shows only USB button when only Web Serial is supported", () => {
+      setTransportSupport({ serial: true, bluetooth: false });
+      render(<App />);
+
+      expect(screen.getByText(/Connect USB/i)).toBeInTheDocument();
+      expect(screen.queryByText(/Connect Bluetooth/i)).not.toBeInTheDocument();
+    });
+
+    it("shows only Bluetooth button when only Web Bluetooth is supported", () => {
+      setTransportSupport({ serial: false, bluetooth: true });
+      render(<App />);
+
+      expect(screen.queryByText(/Connect USB/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Connect Bluetooth/i)).toBeInTheDocument();
+    });
+
+    it("shows a guidance message when neither transport is supported", () => {
+      setTransportSupport({ serial: false, bluetooth: false });
+      render(<App />);
+
+      expect(screen.queryByText(/Connect USB/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Connect Bluetooth/i)).not.toBeInTheDocument();
+      expect(screen.getByText(/Chromium-based browser/i)).toBeInTheDocument();
     });
   });
 
@@ -42,23 +113,21 @@ describe("App Component", () => {
       mocks = setupZMKMocks();
     });
 
-    it("should connect to device when connect button is clicked", async () => {
+    it("should connect to device via USB when connect button is clicked", async () => {
+      setTransportSupport({ serial: true, bluetooth: true });
       mocks.mockSuccessfulConnection({
         deviceName: "Test Keyboard",
         subsystems: ["your_name__template"],
       });
 
-      const { connect: serial_connect } =
+      const { connect: serialConnect } =
         await import("@zmkfirmware/zmk-studio-ts-client/transport/serial");
-      (serial_connect as jest.Mock).mockResolvedValue(mocks.mockTransport);
+      (serialConnect as jest.Mock).mockResolvedValue(mocks.mockTransport);
 
       render(<App />);
 
-      expect(screen.getByText(/Connect Serial/i)).toBeInTheDocument();
-
       const user = userEvent.setup();
-      const connectButton = screen.getByText(/Connect Serial/i);
-      await user.click(connectButton);
+      await user.click(screen.getByText(/Connect USB/i));
 
       await waitFor(() => {
         expect(
@@ -68,6 +137,43 @@ describe("App Component", () => {
 
       expect(screen.getByText(/Disconnect/i)).toBeInTheDocument();
       expect(screen.getByText(/RPC Test/i)).toBeInTheDocument();
+    });
+
+    it("should connect to device via Bluetooth when connect button is clicked", async () => {
+      setTransportSupport({ serial: true, bluetooth: true });
+      mocks.mockSuccessfulConnection({
+        deviceName: "Test Keyboard BLE",
+        subsystems: ["your_name__template"],
+      });
+
+      const { connect: gattConnect } =
+        await import("@zmkfirmware/zmk-studio-ts-client/transport/gatt");
+      (gattConnect as jest.Mock).mockResolvedValue(mocks.mockTransport);
+
+      render(<App />);
+
+      const user = userEvent.setup();
+      await user.click(screen.getByText(/Connect Bluetooth/i));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Connected to: Test Keyboard BLE/i)
+        ).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("Auto-reconnect", () => {
+    it("does not crash and stays disconnected when no serial port was previously paired", async () => {
+      // No navigator.serial defined: ZMKConnection's autoReconnect calls
+      // connectToPairedSerial(), which resolves null silently in that case.
+      setTransportSupport({ serial: false, bluetooth: false });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/Chromium-based browser/i)).toBeInTheDocument();
+      });
     });
   });
 });
