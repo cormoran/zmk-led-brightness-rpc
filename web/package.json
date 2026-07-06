@@ -15,7 +15,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@cormoran/zmk-studio-react-hook": "github:cormoran/react-zmk-studio#77652d6aca7b1a3d7d165d5fa659da7a89ec9034",
+    "@cormoran/zmk-studio-react-hook": "github:cormoran/react-zmk-studio#b91561dcaf0ee940cda210a5a52729d55271ee4a",
     "@zmkfirmware/zmk-studio-ts-client": "github:cormoran/zmk-studio-ts-client#custom-studio-protocol",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

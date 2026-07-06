@@ -37,6 +37,13 @@ EXCLUDED_PATHS = (
 # them here; scripts/check_placeholders.py covers them afterwards.
 INSTRUCTION_FILES = ("AGENTS.md", "CLAUDE.md")
 
+# A line containing this marker is left untouched by both apply_replacements
+# and scan_placeholders, even if it contains a token that would otherwise be
+# rewritten/flagged. Use it for text that must keep referring to the template
+# itself forever (e.g. an attribution link), as opposed to a placeholder that
+# every fork is expected to replace with its own values.
+IGNORE_MARKER = "zmk-module-template:keep"
+
 # If any of these strings survives outside the excluded paths, the
 # initialization is incomplete. scripts/check_placeholders.py enforces the
 # same list from pre-commit once the AGENTS.md Initialization section is gone.
@@ -174,9 +181,21 @@ def apply_replacements(replacements: list[tuple[str, str]], dry_run: bool) -> in
         text = read_text(path)
         if text is None:
             continue
-        new_text = text
-        for old, new in replacements:
-            new_text = new_text.replace(old, new)
+        # Applied line-by-line (rather than over the whole file) so a line
+        # carrying IGNORE_MARKER can opt out of every rule; no current rule's
+        # "old" string spans multiple lines, so this is behaviorally
+        # equivalent for everything else.
+        lines = text.split("\n")
+        new_lines = []
+        for line in lines:
+            if IGNORE_MARKER in line:
+                new_lines.append(line)
+                continue
+            new_line = line
+            for old, new in replacements:
+                new_line = new_line.replace(old, new)
+            new_lines.append(new_line)
+        new_text = "\n".join(new_lines)
         if new_text != text:
             changed += 1
             print(f"rewrite {rel}")
@@ -215,6 +234,8 @@ def scan_placeholders(
         if text is None:
             continue
         for lineno, line in enumerate(text.splitlines(), start=1):
+            if IGNORE_MARKER in line:
+                continue
             if any(token in line for token in PLACEHOLDER_TOKENS):
                 rel = path.relative_to(REPO_ROOT).as_posix()
                 findings.append((rel, lineno, line.strip()))
