@@ -58,7 +58,12 @@ describe("App Component", () => {
     it("should render the application header", () => {
       render(<App />);
 
-      expect(screen.getByText(/ZMK Module Template/i)).toBeInTheDocument();
+      // Scoped to the heading role: the footer's "AI ready ZMK module
+      // template" credit line also matches a plain /ZMK Module Template/i
+      // text query.
+      expect(
+        screen.getByRole("heading", { name: /ZMK Module Template/i })
+      ).toBeInTheDocument();
       expect(screen.getByText(/Custom Studio RPC Demo/i)).toBeInTheDocument();
     });
 
@@ -66,13 +71,31 @@ describe("App Component", () => {
       render(<App />);
 
       expect(screen.getByText(/Template Module/i)).toBeInTheDocument();
-      const link = screen.getByRole("link", {
+      // In the pristine template, GITHUB_REPO and TEMPLATE_CREDIT_REPO happen
+      // to share the same placeholder value -- scripts/init_module.py only
+      // rewrites the former (the latter is permanently exempted), so after
+      // initialization only one of these links still reads this text.
+      const links = screen.getAllByRole("link", {
         name: "cormoran/zmk-module-template",
       });
-      expect(link).toHaveAttribute(
-        "href",
-        "https://github.com/cormoran/zmk-module-template"
-      );
+      expect(links.length).toBe(2);
+      for (const link of links) {
+        expect(link).toHaveAttribute(
+          "href",
+          "https://github.com/cormoran/zmk-module-template"
+        );
+      }
+    });
+
+    it("should render a permanent template credit that survives initialization", () => {
+      render(<App />);
+
+      expect(screen.getByText(/Built from/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/AI ready ZMK module template/i)
+      ).toBeInTheDocument();
+      const creditLink = screen.getByRole("link", { name: "@cormoran" });
+      expect(creditLink).toHaveAttribute("href", "https://github.com/cormoran");
     });
   });
 

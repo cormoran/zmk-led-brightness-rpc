@@ -64,3 +64,8 @@
 .unlock-prompt p {
   margin-top: 0;
 }
+
+.template-credit {
+  font-size: 0.85rem;
+  color: #666;
+}

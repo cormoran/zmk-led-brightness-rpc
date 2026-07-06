@@ -22,6 +22,13 @@ export const SUBSYSTEM_IDENTIFIER = "your_name__template";
 // leave the owner unreplaced.
 export const GITHUB_REPO = "cormoran/zmk-module-template";
 
+// Unlike GITHUB_REPO above, this always credits the original template
+// project, regardless of which repo this module was forked into. The
+// trailing comment is scripts/init_module.py's IGNORE_MARKER: it keeps this
+// line from being rewritten (like GITHUB_REPO is) or flagged as a leftover
+// placeholder once initialized.
+export const TEMPLATE_CREDIT_REPO = "cormoran/zmk-module-template"; // zmk-module-template:keep
+
 function App() {
   return (
     <div className="app">
@@ -100,6 +107,24 @@ function App() {
             rel="noreferrer"
           >
             {GITHUB_REPO}
+          </a>
+        </p>
+        <p className="template-credit">
+          Built from{" "}
+          <a
+            href={`https://github.com/${TEMPLATE_CREDIT_REPO}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {TEMPLATE_CREDIT_REPO}
+          </a>{" "}
+          - AI ready ZMK module template by{" "}
+          <a
+            href="https://github.com/cormoran"
+            target="_blank"
+            rel="noreferrer"
+          >
+            @cormoran
           </a>
         </p>
       </footer>
