@@ -10,7 +10,9 @@ modules that implement custom Studio RPC subsystems.
   when neither is available (both are Chromium-only and require HTTPS or
   localhost).
 - **Auto-reconnect**: On page load, silently reconnects to a previously
-  paired serial port if one exists, no picker shown.
+  paired serial port if one exists, no picker shown. If more than one device
+  has been paired, prefers whichever one was last successfully connected to
+  (remembered in `sessionStorage`) instead of an arbitrary one.
 - **Studio unlock flow**: Prompts the user to press `&studio_unlock` when a
   secured RPC call is rejected, and retries automatically once the device
   reports it's unlocked (manual Retry button as a fallback).

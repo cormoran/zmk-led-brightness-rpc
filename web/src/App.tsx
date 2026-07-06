@@ -1,6 +1,5 @@
 import { useContext, useEffect, useState } from "react";
 import "./App.css";
-import { connect as serialConnect } from "@zmkfirmware/zmk-studio-ts-client/transport/serial";
 import { connect as gattConnect } from "@zmkfirmware/zmk-studio-ts-client/transport/gatt";
 import {
   ZMKConnection,
@@ -10,6 +9,7 @@ import {
   isWebSerialSupported,
   isWebBluetoothSupported,
   useCustomSubsystem,
+  connectSerial,
 } from "@cormoran/zmk-studio-react-hook";
 import { Request, Response } from "./proto/your-name/template/template";
 
@@ -46,7 +46,7 @@ function App() {
                 {isWebSerialSupported() && (
                   <button
                     className="btn btn-primary"
-                    onClick={() => connect(serialConnect)}
+                    onClick={() => connect(connectSerial)}
                   >
                     🔌 Connect USB
                   </button>

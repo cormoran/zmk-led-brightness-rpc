@@ -9,12 +9,17 @@ jest.mock("@zmkfirmware/zmk-studio-ts-client", () => ({
   call_rpc: jest.fn(),
 }));
 
-jest.mock("@zmkfirmware/zmk-studio-ts-client/transport/serial", () => ({
+jest.mock("@zmkfirmware/zmk-studio-ts-client/transport/gatt", () => ({
   connect: jest.fn(),
 }));
 
-jest.mock("@zmkfirmware/zmk-studio-ts-client/transport/gatt", () => ({
-  connect: jest.fn(),
+// App.tsx uses connectSerial (not the ts-client's raw transport/serial
+// connect) so that a manual USB connect remembers the port for auto-reconnect
+// -- see @cormoran/zmk-studio-react-hook's README. Mock just that one export,
+// keeping everything else (ZMKConnection, hooks, etc.) real.
+jest.mock("@cormoran/zmk-studio-react-hook", () => ({
+  ...jest.requireActual("@cormoran/zmk-studio-react-hook"),
+  connectSerial: jest.fn(),
 }));
 
 // jsdom defines neither navigator.serial nor navigator.bluetooth by default;
@@ -120,9 +125,8 @@ describe("App Component", () => {
         subsystems: ["your_name__template"],
       });
 
-      const { connect: serialConnect } =
-        await import("@zmkfirmware/zmk-studio-ts-client/transport/serial");
-      (serialConnect as jest.Mock).mockResolvedValue(mocks.mockTransport);
+      const { connectSerial } = await import("@cormoran/zmk-studio-react-hook");
+      (connectSerial as jest.Mock).mockResolvedValue(mocks.mockTransport);
 
       render(<App />);
 

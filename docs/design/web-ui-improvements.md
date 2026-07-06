@@ -114,10 +114,20 @@ helper:
 
 ## 4. Auto-reconnect
 
-`<ZMKConnection autoReconnect ...>` is the only change needed: on mount, the
-library tries once to reconnect to a previously-paired serial port
-(`connectToPairedSerial()`), silently staying disconnected if there is none
-or opening it fails. No template-owned state was needed for this.
+`<ZMKConnection autoReconnect ...>` is the only template-side change needed:
+on mount, the library tries once to reconnect to a previously-paired serial
+port (`connectToPairedSerial()`), silently staying disconnected if there is
+none or opening it fails. No template-owned state was needed for this.
+
+If more than one device has been paired, `connectToPairedSerial()` prefers
+whichever port was last successfully connected to (remembered in
+`sessionStorage`, scoped to the current browser tab/session) instead of
+blindly picking the first paired port. This only works end-to-end because the
+manual "Connect USB" button uses `connectSerial()` (not the ts-client's raw
+`transport/serial` `connect()`) -- that's what records "the user just picked
+this device" so a later auto-reconnect prefers it. See the library's own
+README for the vendor/product-id-based disambiguation and its limitation with
+multiple identical devices.
 
 ## 5. Tests
 
