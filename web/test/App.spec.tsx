@@ -114,6 +114,7 @@ describe("App Component", () => {
 
       expect(screen.getByText(/Connect USB/i)).toBeInTheDocument();
       expect(screen.queryByText(/Connect Bluetooth/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Not showing up/i)).not.toBeInTheDocument();
     });
 
     it("shows only Bluetooth button when only Web Bluetooth is supported", () => {
@@ -122,6 +123,14 @@ describe("App Component", () => {
 
       expect(screen.queryByText(/Connect USB/i)).not.toBeInTheDocument();
       expect(screen.getByText(/Connect Bluetooth/i)).toBeInTheDocument();
+    });
+
+    it("shows a hint that unlocking may be needed for the keyboard to appear over Bluetooth", () => {
+      setTransportSupport({ serial: false, bluetooth: true });
+      render(<App />);
+
+      expect(screen.getByText(/Not showing up/i)).toBeInTheDocument();
+      expect(screen.getByText(/studio_unlock/i)).toBeInTheDocument();
     });
 
     it("shows a guidance message when neither transport is supported", () => {

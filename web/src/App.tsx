@@ -49,33 +49,43 @@ function App() {
               </div>
             )}
             {!isLoading && (
-              <div className="connect-buttons">
-                {isWebSerialSupported() && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => connect(connectSerial)}
-                  >
-                    🔌 Connect USB
-                  </button>
-                )}
+              <>
+                <div className="connect-buttons">
+                  {isWebSerialSupported() && (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => connect(connectSerial)}
+                    >
+                      🔌 Connect USB
+                    </button>
+                  )}
+                  {isWebBluetoothSupported() && (
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => connect(gattConnect)}
+                    >
+                      📶 Connect Bluetooth
+                    </button>
+                  )}
+                  {!isWebSerialSupported() && !isWebBluetoothSupported() && (
+                    <div className="warning-message">
+                      <p>
+                        ⚠️ Web Serial and Web Bluetooth are unavailable here.
+                        Use a Chromium-based browser (Chrome, Edge, ...) over
+                        HTTPS or localhost to connect to your keyboard.
+                      </p>
+                    </div>
+                  )}
+                </div>
                 {isWebBluetoothSupported() && (
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => connect(gattConnect)}
-                  >
-                    📶 Connect Bluetooth
-                  </button>
+                  <p className="hint-message">
+                    📶 Not showing up? Some firmware only advertises the Studio
+                    Bluetooth service once unlocked — press the unlock key (
+                    <code>&amp;studio_unlock</code> behavior) on your keyboard,
+                    then try connecting again.
+                  </p>
                 )}
-                {!isWebSerialSupported() && !isWebBluetoothSupported() && (
-                  <div className="warning-message">
-                    <p>
-                      ⚠️ Web Serial and Web Bluetooth are unavailable here. Use
-                      a Chromium-based browser (Chrome, Edge, ...) over HTTPS or
-                      localhost to connect to your keyboard.
-                    </p>
-                  </div>
-                )}
-              </div>
+              </>
             )}
           </section>
         )}

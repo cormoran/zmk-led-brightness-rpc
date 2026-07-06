@@ -8,7 +8,9 @@ modules that implement custom Studio RPC subsystems.
 - **Dual transport with feature detection**: Connect via USB (Web Serial) or
   Bluetooth (Web Bluetooth), whichever the browser supports; shows guidance
   when neither is available (both are Chromium-only and require HTTPS or
-  localhost).
+  localhost). Some firmware only advertises the Studio Bluetooth service once
+  unlocked (`&studio_unlock`) -- the browser's device picker won't show the
+  keyboard until then, so the UI hints at this under the Bluetooth button.
 - **Auto-reconnect**: On page load, silently reconnects to a previously
   paired serial port if one exists, no picker shown. If more than one device
   has been paired, prefers whichever one was last successfully connected to
