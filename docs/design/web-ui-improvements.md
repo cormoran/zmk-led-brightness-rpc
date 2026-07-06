@@ -51,8 +51,7 @@ rest of the UI text.
 ## 2. Studio unlock handling (prompt + retry), provided by default
 
 Library facts (from `@cormoran/zmk-studio-react-hook`, pinned to a
-`feature/dx-helpers` commit of react-zmk-studio -- see the dependency note in
-`web/README.md`):
+`main` commit of react-zmk-studio, post PRs #6/#7):
 
 - `useStudioLockState()` returns `{ locked: boolean, lockState: "locked" |
   "unlocked" | "unknown" }`. On connect it queries `core.getLockState` once
@@ -163,9 +162,6 @@ rather than rewritten:
 - Build metadata in the footer (commit SHA via `VITE_*` env in
   `web-ui.yml`) -- optional, skipped as non-trivial for this change.
 - Styling/dark mode -- skipped.
-- Re-pinning `@cormoran/zmk-studio-react-hook` off the `feature/dx-helpers`
-  branch commit once react-zmk-studio PRs #6/#7 merge (tracked in
-  `web/README.md`'s "Dependency note").
 
 ## Pitfalls recap for the implementer
 

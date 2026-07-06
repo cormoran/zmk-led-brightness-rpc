@@ -174,16 +174,6 @@ condition is `UNLOCK_REQUIRED`, then asserting the prompt appears and that
 both the manual Retry button and a simulated `lockStateChanged` notification
 successfully retry the request.
 
-## Dependency note
-
-`@cormoran/zmk-studio-react-hook` in `package.json` is temporarily pinned to
-a commit on the `feature/dx-helpers` branch of
-[react-zmk-studio](https://github.com/cormoran/react-zmk-studio), which adds
-`useStudioLockState`, `isUnlockRequiredError`, auto-reconnect,
-`useCustomSubsystem`, and the transport feature-detection helpers this
-template uses. Once react-zmk-studio PRs #6 and #7 merge to `main`, re-pin
-this dependency to a `main` commit (or a published version, once one exists).
-
 ## Customization
 
 To adapt this template for your own ZMK module:
