@@ -41,7 +41,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Building the extra renode_smoke_test artifact (tests/zmk-config/build.yaml)
+    # plus installing Renode and running the Renode test suite takes longer
+    # than a plain build; 10 minutes was fine before those existed.
+    timeout-minutes: 30
     container:
       image: zmkfirmware/zmk-build-arm:stable
     name: Build
@@ -50,6 +53,9 @@ jobs:
         uses: actions/checkout@v4
       - uses: ./.github/actions/west-init
       - name: Test
+        # Builds every tests/zmk-config/build.yaml artifact, including
+        # renode_smoke_test (the Renode-testable ELF the next step tests) --
+        # "build done in a previous step" for the Renode CI action below.
         run: python3 -m unittest -v
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -57,6 +63,24 @@ jobs:
           name: zmk-firmware
           path: |
             build/*/zephyr/zmk.uf2
+      # Hardware-free Renode test (see README.md's "Hardware-free Renode
+      # testing" section): boots the renode_smoke_test artifact built above
+      # and runs tests/renode/. This action does NOT build firmware itself
+      # (repo-owner requirement) -- it only tests the ELF path given below.
+      # Pinned by commit SHA (immutable, works even before any PR into
+      # zmk-workspace merges). Bump this SHA whenever a fix lands on
+      # zmk-workspace's claude/renode-ci-action branch.
+      # TODO: repoint to @main after the zmk-workspace PR merges (and
+      # switch west/west-dependency/west-test-dependency.yml's zmk-workspace
+      # revision to main at the same time).
+      # Paths are relative to the checkout root -- do NOT use
+      # ${{ github.workspace }} here: in a container job that expression
+      # is the runner-host path, not the container's mount path.
+      - uses: cormoran/zmk-workspace/.github/actions/zmk-renode-test@e4d20098a5be99fffa355047419f8a678031abb8
+        with:
+          elf-path: build/renode_smoke_test/zephyr/zmk.elf
+          tests: tests/renode
+          west-topdir: .
 
   keepalive:
     if: github.event_name == 'schedule'

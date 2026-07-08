@@ -154,6 +154,54 @@ west zmk-test tests -m .
 cd web && npm test
 ```
 
+### Hardware-free Renode testing
+
+CI also boots this module's firmware in the [Renode](https://renode.io/)
+emulator (no physical board needed) and exercises it functionally: the real
+ZMK boot banner, a core Studio RPC `GetDeviceInfo` round trip, and this
+module's own custom Studio RPC subsystem. This is a *step* in the `Build`
+job in `.github/workflows/zmk-module.yml` (not a separate job) -- it tests
+the `renode_smoke_test` artifact `python3 -m unittest -v` already built
+(see `tests/zmk-config/build.yaml`) using a reusable action,
+[`cormoran/zmk-workspace`'s
+`zmk-renode-test`](https://github.com/cormoran/zmk-workspace/tree/main/.github/actions/zmk-renode-test).
+**That action does not build firmware** -- this module's own build flow
+does, using the `renode-studio-uart` Zephyr snippet that `zmk-workspace`
+provides as a west dependency (see
+`west/west-dependency/west-test-dependency.yml`); the action only boots the
+resulting ELF and runs tests against it.
+
+To reproduce locally (after the usual `west update`, which also fetches
+`zmk-workspace` into `dependencies/zmk-workspace`):
+
+```bash
+# 1. Build the Renode-testable artifact (Studio-RPC-over-UART overlay + the
+#    Renode-only transport that bypasses the USB-gated real one -- real
+#    hardware still uses the studio-rpc-usb-uart snippet as normal). This
+#    builds every tests/zmk-config/build.yaml artifact; -af filters to just
+#    the Renode one by (substring) artifact name.
+west zmk-build tests/zmk-config -af renode
+# (equivalent to letting the full `python3 -m unittest -v` build sweep run)
+
+# 2. Generic smoke test (boot banner + core Studio RPC).
+python3 dependencies/zmk-workspace/skills/test-zmk-renode/scripts/renode_smoke.py \
+  --elf build/renode_smoke_test/zephyr/zmk.elf --west-topdir "$PWD"
+
+# 3. This module's own Renode test (custom Studio RPC subsystem). PYTHONPATH
+#    is optional -- tests/renode/renode_test.py falls back to
+#    dependencies/zmk-workspace/skills/test-zmk-renode/scripts automatically.
+ZMK_RENODE_ELF="$PWD/build/renode_smoke_test/zephyr/zmk.elf" \
+python3 tests/renode/renode_test.py -v
+```
+
+To adapt `tests/renode/renode_test.py` for your own module: it imports
+`renode_harness` (from the `zmk-workspace` west dependency, via
+`PYTHONPATH` in CI or the automatic fallback locally) for all the
+Renode/RPC plumbing, reads the built ELF's path from `ZMK_RENODE_ELF`, and
+only needs to know your module's own custom-subsystem identifier and proto
+messages -- see the file's own module docstring for how the `zmk.custom`
+envelope (subsystem discovery/addressing) works.
+
 ### Sync changes from template
 
 Run `Actions > Sync Changes in Template > Run workflow` to get the latest template changes as a pull request.

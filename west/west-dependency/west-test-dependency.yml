@@ -16,3 +16,15 @@ manifest:
       remote: cormoran
       revision: main
       import: true
+    # Provides the Renode-only Studio RPC UART transport + the
+    # renode-studio-uart snippet (as a Zephyr module -- see its own
+    # zephyr/module.yml) used by tests/zmk-config/build.yaml's
+    # renode_smoke_test artifact and the zmk-renode-test GitHub Action.
+    # Test-only: do not add this to west-dependency.yml (that one is
+    # imported by consumers of this module).
+    # TODO: switch revision to main once cormoran/zmk-workspace's
+    # claude/renode-ci-action PR merges.
+    - name: zmk-workspace
+      remote: cormoran
+      revision: e4d20098a5be99fffa355047419f8a678031abb8
+      clone-depth: 1

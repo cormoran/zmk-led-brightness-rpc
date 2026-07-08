@@ -100,6 +100,25 @@ class WestCommandsTests(unittest.TestCase):
                     ],
                     device=[],
                 ),
+                # Hardware-free Renode testing artifact (see README.md's
+                # "Hardware-free Renode testing" section): built with the
+                # renode-studio-uart snippet from cormoran/zmk-workspace
+                # (a test-only west dependency) instead of the real
+                # USB-carried studio-rpc-usb-uart snippet. Verify the
+                # snippet's Kconfig actually took effect -- the Renode-only
+                # transport enabled, the real USB-gated one and USB itself
+                # disabled.
+                "renode_smoke_test": ConfigAndDeviceTree(
+                    config=[
+                        "CONFIG_ZMK_STUDIO=y",
+                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
+                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_RENODE_STUDIO_UART_TRANSPORT=y",
+                        "# CONFIG_ZMK_STUDIO_TRANSPORT_UART is not set",
+                        "# CONFIG_ZMK_USB is not set",
+                    ],
+                    device=[],
+                ),
             }
         )
 
