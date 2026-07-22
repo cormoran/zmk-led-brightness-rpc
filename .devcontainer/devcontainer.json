@@ -10,8 +10,8 @@
     "Zephyr_DIR": "${containerWorkspaceFolder}/dependencies/zephyr/share/zephyr-package/cmake/"
   },
   "mounts": [
-    "type=volume,source=zmk-dependencies-v4,target=/${containerWorkspaceFolder}/dependencies",
-    "type=volume,source=zmk-build,target=/${containerWorkspaceFolder}/build",
+    "type=volume,source=zmk-dependencies-v4,target=${containerWorkspaceFolder}/dependencies",
+    "type=volume,source=zmk-build,target=${containerWorkspaceFolder}/build",
     // The same to ZMK's official devcontainer
     "type=volume,source=zmk-root-user,target=/root"
   ],

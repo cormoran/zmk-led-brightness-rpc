@@ -35,7 +35,9 @@ Useful options:
 
 - `--repo`: New repository name, required.
 - `--owner`: GitHub owner or organization for the new repo, default `cormoran`.
-- `--visibility`: `public`, `private`, or `internal`, default `public`.
+- `--visibility`: `public`, `private`, or `internal`. The script defaults to
+  `private`, so pass `--visibility public` explicitly (the workflow above
+  infers `public` when the user does not say otherwise).
 - `--branch`: Implementation branch to create after pushing `main`.
 - `--destination`: Clone destination. Default is `../<repo>`.
 - `--template-url`: Template SSH URL. Default is cormoran's template repository.

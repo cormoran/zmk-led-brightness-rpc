@@ -23,8 +23,9 @@ include:
   # Hardware-free Renode testing (see README.md) -- the `wired-split` mode of
   # zmk-west-commands' `west zmk-renode-test`. A wired split pair: the central
   # answers Studio RPC over the emulated USB CDC (tests/renode/renode_test.py),
-  # the smoke also asserts a peripheral keypress reaches the central. Shields
-  # come from zmk-west-commands (renode_usb_wired_split / renode_wired_split).
+  # the smoke also asserts a peripheral keypress reaches the central. The
+  # renode_usb_wired_split / renode_wired_split shields are local copies (in
+  # boards/shields/ here) of zmk-west-commands' test shields of the same name.
   # Emulation-only images (USB/split pinctrl), not flashable as-is.
   #
   # The module's split-relay sample is NOT built here: relay-over-wired needs a
