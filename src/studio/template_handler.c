@@ -8,6 +8,10 @@
 #include <cormoran/zmk/custom_settings.h>
 #endif
 
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_RELAY_EVENT)
+#include <your-name/template/template_relay.h>
+#endif
+
 #include <zephyr/logging/log.h>
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -76,6 +80,14 @@ static bool template_rpc_handle_request(const zmk_custom_CallRequest *raw_reques
 static int handle_sample_request(const your_name_template_SampleRequest *req,
                                  your_name_template_Response *resp) {
     LOG_DBG("Received sample request with value: %d", req->value);
+
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_RELAY_EVENT)
+    // Split-relay sample: forward the received value to the split
+    // peripheral(s) over ZMK's split event-relay as a plain packed C struct
+    // (see src/split/template_relay.c). A no-op unless this build is a split
+    // central with a connected peripheral.
+    template_relay_send_sample(req->value);
+#endif
 
     your_name_template_SampleResponse result = your_name_template_SampleResponse_init_zero;
 

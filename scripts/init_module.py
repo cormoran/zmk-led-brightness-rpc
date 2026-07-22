@@ -26,7 +26,6 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 EXCLUDED_PATHS = (
     "scripts/",
     "skills/",
-    "docs/design/",  # design docs may quote template paths
     "DESIGN.md",
     ".github/workflows/template-sync.yml",
     "web/src/proto/",  # generated

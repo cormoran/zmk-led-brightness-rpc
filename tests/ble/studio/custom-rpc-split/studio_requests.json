@@ -1,0 +1,18 @@
+[
+  {
+    "custom": {
+      "listCustomSubsystems": {}
+    }
+  },
+  {
+    "custom": {
+      "call": {
+        "subsystemIndex": 0,
+        "payload": {
+          "$type": "your_name.template.Request",
+          "sample": { "value": 42 }
+        }
+      }
+    }
+  }
+]

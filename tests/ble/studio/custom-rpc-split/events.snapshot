@@ -1,0 +1,32 @@
+host <wrn> bt_id: No static addresses stored in controller
+host <dbg> ble_studio_host: main: [Bluetooth initialized]
+host <dbg> ble_studio_host: start_scan: [Scanning successfully started]
+host <dbg> ble_studio_host: device_found: [DEVICE]: FD:9E:B2:48:47:39 (random), AD evt type 0, AD data len 15, RSSI -56
+host <dbg> ble_studio_host: eir_found: [AD]: 25 data_len 2
+host <dbg> ble_studio_host: eir_found: [AD]: 1 data_len 1
+host <dbg> ble_studio_host: eir_found: [AD]: 2 data_len 4
+host <dbg> ble_studio_host: connected: [Connected]: FD:9E:B2:48:47:39 (random)
+host <dbg> ble_studio_host: connected: [Setting the security for the connection]
+host <dbg> ble_studio_host: pairing_complete: Pairing complete
+host <dbg> ble_studio_host: mtu_exchanged: [MTU exchanged] (err 0) mtu 65
+host <dbg> ble_studio_host: discover_conn: [Discovery started for conn]
+host <dbg> ble_studio_host: discover_func: [ATTRIBUTE] handle 38
+host <dbg> ble_studio_host: discover_func: [ATTRIBUTE] handle 39
+host <dbg> ble_studio_host: discover_func: [ATTRIBUTE] handle 41
+host <dbg> ble_studio_host: discover_func: [SUBSCRIBED]
+host <dbg> ble_studio_host: write_func: [WROTE REQUEST]
+host <dbg> ble_studio_host: handle_frame: [RPC RESPONSE 1]
+host <dbg> ble_studio_host: handle_frame: payload
+host                        0a 4e 08 01 a2 06 49 0a  47 0a 45 12 13 79 6f 75 |.N....I. G.E..you
+host                        72 5f 6e 61 6d 65 5f 5f  74 65 6d 70 6c 61 74 65 |r_name__ template
+host                        1a 2e 68 74 74 70 3a 2f  2f 63 6f 72 6d 6f 72 61 |..http:/ /cormora
+host                        6e 2e 67 69 74 68 75 62  2e 69 6f 2f 7a 6d 6b 2d |n.github .io/zmk-
+host                        6d 6f 64 75 6c 65 2d 74  65 6d 70 6c 61 74 65 2f |module-t emplate/
+host <dbg> ble_studio_host: write_func: [WROTE REQUEST]
+host <dbg> ble_studio_host: handle_frame: [RPC RESPONSE 2]
+host <dbg> ble_studio_host: handle_frame: payload
+host                        0a 2e 08 02 a2 06 29 12  27 12 25 12 23 0a 21 48 |......). '.%.#.!H
+host                        65 6c 6c 6f 20 66 72 6f  6d 20 66 69 72 6d 77 61 |ello fro m firmwa
+host                        72 65 21 20 52 65 63 65  69 76 65 64 3a 20 34 32 |re! Rece ived: 42
+host <dbg> ble_studio_host: handle_frame: [ALL RESPONSES RECEIVED]
+peripheral <dbg> zmk: template_relay_on_sample: Peripheral received relayed sample value: 42 (v1)

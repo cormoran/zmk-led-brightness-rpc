@@ -20,19 +20,27 @@ include:
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
     snippet: studio-rpc-usb-uart
 
-  # Hardware-free Renode testing (see README.md's "Hardware-free Renode
-  # testing" section). Uses the renode-studio-uart snippet from
-  # cormoran/zmk-workspace (a test-only west dependency, see
-  # west/west-dependency/west-test-dependency.yml) in place of the real
-  # USB-carried studio-rpc-usb-uart snippet -- Renode's nRF52840 USBD model
-  # can't present a host-openable CDC port, so this binds Studio RPC (and
-  # the console) to real UART peripherals instead; see that snippet's own
-  # overlay for the full story. Produces zephyr/zmk.elf (not a flashable
-  # .uf2 target on real hardware -- the pinctrl/overlay it uses is
-  # emulation-only).
-  - artifact: renode_smoke_test
+  # Hardware-free Renode testing (see README.md) -- the `wired-split` mode of
+  # zmk-west-commands' `west zmk-renode-test`. A wired split pair: the central
+  # answers Studio RPC over the emulated USB CDC (tests/renode/renode_test.py),
+  # the smoke also asserts a peripheral keypress reaches the central. Shields
+  # come from zmk-west-commands (renode_usb_wired_split / renode_wired_split).
+  # Emulation-only images (USB/split pinctrl), not flashable as-is.
+  #
+  # The module's split-relay sample is NOT built here: relay-over-wired needs a
+  # newer zmk than the pin (fffa339 relays only over BLE, so a BLE-off wired
+  # half fails to link). That path is covered by the BabbleSim BLE test. To
+  # re-enable once the pin advances: add CONFIG_ZMK_SPLIT_RELAY_EVENT to both
+  # halves and restore the relay assertion in renode_test.py.
+  - artifact: usb_wired_central
     board: xiao_ble//zmk
-    shield: tester_xiao
+    shield: renode_usb_wired_split
     cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
     snippets:
-      - renode-studio-uart
+      - studio-rpc-usb-uart
+
+  # Plain wired peripheral (no module / no Studio): pairs over the wired link
+  # and forwards key events to the central.
+  - artifact: usb_wired_peripheral
+    board: xiao_ble//zmk
+    shield: renode_wired_split

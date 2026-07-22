@@ -6,25 +6,23 @@ manifest:
     - name: cormoran
       url-base: https://github.com/cormoran
   projects:
+    # TODO: switch revision back to main+custom-studio-protocol once
+    # cormoran/zmk's fix/local-id-map-writable-section branch merges. The BLE
+    # (BabbleSim) tests need its two fixes (writable behavior local-id map
+    # section + settings_subsys_init before dynamic handler registration);
+    # without them the split central segfaults / never starts BLE on
+    # nrf52_bsim.
     - name: zmk
       remote: cormoran
-      revision: main+custom-studio-protocol
+      revision: fffa339cf6f5c45366ab332d2b512f1c3c300753
       import:
         file: app/west.yml
       clone-depth: 1
+    # Provides the `west zmk-renode-test` / `west zmk-ble-test` commands (the
+    # Renode wired-split harness + platforms used by tests/renode, plus the
+    # BabbleSim runner) and the shared `ble-studio-host` app +
+    # `studio_requests.json` DSL for tests/ble.
     - name: zmk-west-commands
       remote: cormoran
       revision: main
       import: true
-    # Provides the Renode-only Studio RPC UART transport + the
-    # renode-studio-uart snippet (as a Zephyr module -- see its own
-    # zephyr/module.yml) used by tests/zmk-config/build.yaml's
-    # renode_smoke_test artifact and the zmk-renode-test GitHub Action.
-    # Test-only: do not add this to west-dependency.yml (that one is
-    # imported by consumers of this module).
-    # TODO: switch revision to main once cormoran/zmk-workspace's
-    # claude/renode-ci-action PR merges.
-    - name: zmk-workspace
-      remote: cormoran
-      revision: e4d20098a5be99fffa355047419f8a678031abb8
-      clone-depth: 1

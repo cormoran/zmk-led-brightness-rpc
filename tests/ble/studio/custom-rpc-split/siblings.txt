@@ -1,0 +1,2 @@
+./{studio_host} -d=2
+./{prefix}_studio_custom-rpc-split_peripheral.exe -d=3
