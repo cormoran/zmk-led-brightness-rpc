@@ -55,7 +55,6 @@ PLACEHOLDER_TOKENS = (
     "template_feature_meta",
     "template_rpc_handle_request",
     "template_sample_bool",
-    "/repo-name/",
     "zmk-module-template",
 )
 
@@ -108,10 +107,13 @@ def build_replacements(
     mod_snake = snake(mod_kebab)
     mod_upper = mod_snake.upper()
     # Ordered: most specific strings first so partially-overlapping rules
-    # never see already-rewritten text.
+    # never see already-rewritten text. Every bare repo-name reference uses
+    # the single canonical token "zmk-module-template" (module.yml, west.yml
+    # example, vite base fallback, ...); the rules whose "old" contains it as
+    # a substring (the full repo name, the pages URL, the owner/repo slug)
+    # come first, then one catch-all rewrites whatever bare token is left.
     return [
         ("zmk-module-template-with-custom-studio-rpc", repo),
-        ("zmk-module-template-rename-please", repo),
         (
             "http://cormoran.github.io/zmk-module-template/",
             f"https://{owner}.github.io/{repo}/",
@@ -121,8 +123,7 @@ def build_replacements(
             f"# {repo}",
         ),
         ("cormoran/zmk-module-template", f"{owner}/{repo}"),
-        ("- name: zmk-module-template", f"- name: {repo}"),
-        ('"/repo-name/"', f'"/{repo}/"'),
+        ("zmk-module-template", repo),
         ("ZMK_TEMPLATE_FEATURE", f"ZMK_{mod_upper}"),
         ("module_template_board", f"{mod_snake}_board"),
         ("your_name_template_", f"{ns_snake}_{mod_snake}_"),
