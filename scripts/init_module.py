@@ -7,8 +7,8 @@ no placeholder is left behind. Run it once, right after cloning the template:
 
     python3 scripts/init_module.py --namespace cormoran --module my-feature
 
-After it succeeds, follow the manual steps it prints (README rewrite,
-AGENTS.md Initialization section removal) and run the test suite.
+After it succeeds, finish the checklist in AGENTS.md's "Initialization (first
+time only)" section (README rewrite, test suites, then remove that section).
 """
 
 from __future__ import annotations
@@ -55,7 +55,6 @@ PLACEHOLDER_TOKENS = (
     "template_feature_meta",
     "template_rpc_handle_request",
     "template_sample_bool",
-    "/repo-name/",
     "zmk-module-template",
 )
 
@@ -108,10 +107,13 @@ def build_replacements(
     mod_snake = snake(mod_kebab)
     mod_upper = mod_snake.upper()
     # Ordered: most specific strings first so partially-overlapping rules
-    # never see already-rewritten text.
+    # never see already-rewritten text. Every bare repo-name reference uses
+    # the single canonical token "zmk-module-template" (module.yml, west.yml
+    # example, vite base fallback, ...); the rules whose "old" contains it as
+    # a substring (the full repo name, the pages URL, the owner/repo slug)
+    # come first, then one catch-all rewrites whatever bare token is left.
     return [
         ("zmk-module-template-with-custom-studio-rpc", repo),
-        ("zmk-module-template-rename-please", repo),
         (
             "http://cormoran.github.io/zmk-module-template/",
             f"https://{owner}.github.io/{repo}/",
@@ -121,8 +123,7 @@ def build_replacements(
             f"# {repo}",
         ),
         ("cormoran/zmk-module-template", f"{owner}/{repo}"),
-        ("- name: zmk-module-template", f"- name: {repo}"),
-        ('"/repo-name/"', f'"/{repo}/"'),
+        ("zmk-module-template", repo),
         ("ZMK_TEMPLATE_FEATURE", f"ZMK_{mod_upper}"),
         ("module_template_board", f"{mod_snake}_board"),
         ("your_name_template_", f"{ns_snake}_{mod_snake}_"),
@@ -317,14 +318,9 @@ def main() -> int:
         print("Verification OK: no template placeholders left.")
 
     print(
-        "\nRemaining manual steps:\n"
-        "  1. Rewrite README.md for your module (description, Module User\n"
-        "     Guide, west.yml sample remotes if the owner is not cormoran).\n"
-        "  2. Remove the Initialization section from AGENTS.md\n"
-        "     (CLAUDE.md is a symlink, do not edit it separately).\n"
-        "  3. Run: python3 -m unittest\n"
-        "  4. Run: cd web && npm ci && npm run generate && npm test\n"
-        "  5. Commit the result before implementing features."
+        "\nNext: finish the checklist in AGENTS.md's "
+        '"Initialization (first time only)" section '
+        "(README rewrite, run the test suites, then remove that section)."
     )
     return 1 if findings else 0
 

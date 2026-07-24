@@ -3,7 +3,8 @@ name: Test ZMK Module
 on:
   push:
     branches:
-      - main
+      - "main+custom-studio-protocol"
+      - "main"
     paths-ignore:
       - "**/*.md"
       - .github/workflows/copilot-setup-steps.yml
@@ -107,7 +108,9 @@ jobs:
 
   keepalive:
     if: github.event_name == 'schedule'
-    permissions: write-all
+    permissions:
+      contents: read
+      actions: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

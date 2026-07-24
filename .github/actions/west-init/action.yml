@@ -18,11 +18,8 @@ runs:
         restore-keys: |
           ${{ runner.os }}-build-${{ env.cache_name }}-
     - name: Init
+      # Shared, idempotent west bootstrap (see scripts/setup_workspace.sh).
       run: |
-        git config --global --add safe.directory ${{ github.workspace }}
-        west init -l west --mf "${{ env.WEST_MANIFEST_FILE }}"
-        west update --narrow
-        west zephyr-export
-      env:
-        WEST_MANIFEST_FILE: ${{ inputs.manifest-file }}
+        git config --global --add safe.directory "${{ github.workspace }}"
+        bash scripts/setup_workspace.sh "${{ inputs.manifest-file }}"
       shell: bash

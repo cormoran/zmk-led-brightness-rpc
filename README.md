@@ -122,9 +122,10 @@ The build result is located in `./build`.
 ```bash
 git clone <this repository>
 cd <cloned directory>
-west init -l west --mf west-test-isolated.yml
-west update --narrow
-west zephyr-export
+# Idempotent helper shared with the devcontainer and CI: runs
+# `west init -l west --mf west-test-isolated.yml`, `west update --narrow`,
+# and `west zephyr-export`.
+bash scripts/setup_workspace.sh
 ```
 
 ### Pre-commit
