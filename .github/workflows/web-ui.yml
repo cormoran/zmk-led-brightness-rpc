@@ -46,6 +46,9 @@ jobs:
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
       - name: Upload build artifact
+        # Only consumed by the `preview` job on pull requests; push deploys use
+        # the separate pages artifact below.
+        if: ${{ github.event_name == 'pull_request' }}
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
@@ -73,9 +76,33 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  preview:
+  # GitHub Actions cannot reference `secrets` in a job-level `if`, so surface
+  # whether the Cloudflare secrets are configured as a job output that the
+  # preview jobs below can gate on.
+  cf-check:
     needs: build
     if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      enabled: ${{ steps.cf.outputs.enabled }}
+    steps:
+      - name: Check Cloudflare secrets
+        id: cf
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -n "$CF_TOKEN" ] && [ -n "$CF_ACCOUNT" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Cloudflare secrets not configured; skipping preview deploy. See README 'Publishing Web UI'."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  preview:
+    needs: [build, cf-check]
+    if: ${{ needs.cf-check.outputs.enabled == 'true' }}
     permissions:
       contents: read
       pull-requests: write
@@ -98,6 +125,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # `--name` is the Cloudflare Workers project name, shared by all PRs of
+          # this repo. Change it if you fork the template into your own account.
           command: versions upload --assets dist --name zmk-module-web-ui --compatibility-date 2026-01-11
           wranglerVersion: '4.58.0'
           workingDirectory: web
@@ -111,6 +140,54 @@ jobs:
             **Preview URL:** ${{ steps.deploy.outputs.deployment-url }}
 
             <sub>Deployed from commit ${context.sha.substring(0, 7)}</sub>`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('🚀 Cloudflare Workers Preview')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+  # Runs instead of `preview` when the Cloudflare secrets are absent (e.g. a
+  # fresh repo created from this template). Keeps CI green and tells the PR
+  # author how to turn previews on, without an environment/approval gate.
+  preview-disabled:
+    needs: [build, cf-check]
+    if: ${{ github.event_name == 'pull_request' && needs.cf-check.outputs.enabled != 'true' }}
+    permissions:
+      pull-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Comment PR that preview is disabled
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 🚀 Cloudflare Workers Preview
+
+            ⚠️ Preview deploys are **disabled**: the \`CLOUDFLARE_API_TOKEN\` and \`CLOUDFLARE_ACCOUNT_ID\` repository secrets are not configured.
+
+            To enable per-PR previews, add both secrets under **Settings → Secrets and variables → Actions**. See the "Publishing Web UI" section of the README for details.`;
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,

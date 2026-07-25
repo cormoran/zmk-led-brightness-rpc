@@ -4,6 +4,19 @@ name = "zmk-module-template-with-custom-studio-rpc"
 
 [setup]
 script = '''
+# Copy-on-write copy that works on both Linux and macOS, falling back to a plain
+# copy when the filesystem/tooling has no reflink support. GNU coreutils uses
+# `--reflink=auto`; BSD/macOS `cp` uses `-c` (clonefile).
+cow_copy() {
+    if cp -R --reflink=auto "$1" "$2" 2>/dev/null; then
+        return 0
+    fi
+    if cp -cR "$1" "$2" 2>/dev/null; then
+        return 0
+    fi
+    cp -R "$1" "$2"
+}
+
 if [ ! -d "$CODEX_SOURCE_TREE_PATH/dependencies" ]; then
     (
         cd "$CODEX_SOURCE_TREE_PATH"
@@ -23,14 +36,14 @@ if [ ! -d "$CODEX_SOURCE_TREE_PATH/web/node_modules" ]; then
 fi
 
 if [ -d "$CODEX_SOURCE_TREE_PATH/dependencies" ]; then
-    cp -cR "$CODEX_SOURCE_TREE_PATH/dependencies" "$CODEX_WORKTREE_PATH/" || echo "failed to copy dependencies"
+    cow_copy "$CODEX_SOURCE_TREE_PATH/dependencies" "$CODEX_WORKTREE_PATH/" || echo "failed to copy dependencies"
 else
     echo "source dependencies directory not found; skipping copy"
 fi
 
 if [ -d "$CODEX_SOURCE_TREE_PATH/web/node_modules" ]; then
     mkdir -p "$CODEX_WORKTREE_PATH/web"
-    cp -cR "$CODEX_SOURCE_TREE_PATH/web/node_modules" "$CODEX_WORKTREE_PATH/web/" || echo "failed to copy web/node_modules"
+    cow_copy "$CODEX_SOURCE_TREE_PATH/web/node_modules" "$CODEX_WORKTREE_PATH/web/" || echo "failed to copy web/node_modules"
 else
     echo "source web/node_modules directory not found; skipping copy"
 fi
