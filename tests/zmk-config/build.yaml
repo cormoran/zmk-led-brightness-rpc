@@ -14,6 +14,17 @@ include:
     shield: tester_xiao
     cmake-args: -DCONFIG_ZMK_TEMPLATE_FEATURE=y
 
+  # DUT for the web UI end-to-end test (see web/e2e/ and README.md's "Web UI
+  # end-to-end testing"): the same real studio-rpc-usb-uart image as
+  # module_template_board_with_rpc -- one machine, so it boots and enumerates
+  # USB fast -- but with Studio locking OFF. An emulator has no key to press
+  # &studio_unlock with, and the web UI disables its controls while locked.
+  - artifact: web_e2e
+    board: xiao_ble//zmk
+    shield: tester_xiao
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+    snippet: studio-rpc-usb-uart
+
   - artifact: custom_settings_board
     board: xiao_ble//zmk
     shield: tester_xiao

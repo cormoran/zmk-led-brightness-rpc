@@ -181,6 +181,28 @@ than this repo's pinned zmk, so it is covered by the BabbleSim BLE test instead
 [zmk-west-commands' README, `west zmk-renode-test`](https://github.com/cormoran/zmk-west-commands#west-zmk-renode-test)
 and [docs/renode-testing.md](https://github.com/cormoran/zmk-west-commands/blob/main/docs/renode-testing.md).
 
+### Web UI end-to-end testing
+
+`web/e2e/` runs the **web UI itself**, in a headless browser, against this
+module's **real firmware** in Renode -- no hardware (CI's `Web UI E2E Test`
+workflow). `west zmk-web-e2e` boots the DUT, serves its Studio RPC (over the
+emulated USB CDC) to the browser and hands the test a `navigator.serial` shim,
+so the app, its transport, the RPC framing and the firmware are all real -- only
+the browser's serial driver is faked. `rpc.spec.ts` connects through the app's
+own button and round-trips the module's custom RPC; rewrite its assertions for
+your own requests. Locally:
+
+```bash
+west zmk-build tests/zmk-config -af web_e2e
+west zmk-web-e2e --elf build/web_e2e/zephyr/zmk.elf -- npm --prefix web run e2e
+```
+
+The DUT (the `web_e2e` artifact) is the real `studio-rpc-usb-uart` image with
+Studio locking off -- an emulator has no key to press `&studio_unlock` with.
+Details (the shim's permission model, the `ZMK_WEB_E2E_*` env contract,
+debugging): see
+[zmk-west-commands' docs/zmk-web-e2e.md](https://github.com/cormoran/zmk-west-commands/blob/main/docs/zmk-web-e2e.md).
+
 ### Running BLE (BabbleSim) tests
 
 `tests/ble/` runs real `nrf52_bsim` firmware on a simulated radio (x86 Linux

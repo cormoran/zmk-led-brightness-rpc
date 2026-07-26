@@ -21,7 +21,9 @@ request/response pair before starting the next.
    `tests/studio/` (or add a new test case directory) to cover it.
    Done when: `west zmk-test tests -m .` passes.
 3. **Web**: run `cd web && npm run generate`, then use the new messages in the
-   UI. Add or extend a spec in `web/test/`.
+   UI. Add or extend a spec in `web/test/`. For UI a user drives end to end,
+   extend `web/e2e/rpc.spec.ts` too -- it runs the real UI in a browser against
+   the real firmware in Renode (README.md's "Web UI end-to-end testing").
    Done when: `npm test` and `npm run build` pass.
 4. **Gate**: `python3 -m unittest` and `pre-commit run --all-files` pass.
    Never start the next slice with anything red.

@@ -12,6 +12,7 @@ on:
       - .github/workflows/claude.yml
       - .github/workflows/template-sync.yml
       - .github/workflows/web-ui.yml
+      - .github/workflows/web-e2e.yml
       - .github/actions/zmk-env/**
       - .gitignore
       - .claude/**
@@ -26,6 +27,7 @@ on:
       - .github/workflows/claude.yml
       - .github/workflows/template-sync.yml
       - .github/workflows/web-ui.yml
+      - .github/workflows/web-e2e.yml
       - .github/actions/zmk-env/**
       - .gitignore
       - .claude/**

@@ -1,0 +1,99 @@
+name: Web UI E2E Test
+
+# End-to-end: the real web UI, in a headless browser, against this module's real
+# firmware running in the Renode emulator -- no hardware. See web/e2e/ and
+# README.md's "Web UI end-to-end testing".
+#
+# Two jobs, because the two halves need different environments: the firmware is
+# built in the Zephyr container, and the browser runs on a plain runner (which
+# needs neither west nor a Zephyr toolchain -- the zmk-web-e2e action ships its
+# own Renode harness).
+on:
+  push:
+    branches:
+      - "main+custom-studio-protocol"
+      - "main"
+    # (GitHub Actions does not support YAML anchors, so this list is repeated
+    # under pull_request below -- keep the two in sync.)
+    paths:
+      - "web/**"
+      - "proto/**"
+      - "src/**"
+      - "include/**"
+      - "Kconfig"
+      - "CMakeLists.txt"
+      - "tests/zmk-config/**"
+      - "west/**"
+      - ".github/workflows/web-e2e.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - "proto/**"
+      - "src/**"
+      - "include/**"
+      - "Kconfig"
+      - "CMakeLists.txt"
+      - "tests/zmk-config/**"
+      - "west/**"
+      - ".github/workflows/web-e2e.yml"
+  workflow_dispatch:
+
+jobs:
+  build-dut:
+    name: Build DUT firmware
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: ./.github/actions/west-init
+      # Only the e2e DUT: a single-machine studio-rpc-usb-uart image with Studio
+      # locking off (see tests/zmk-config/build.yaml).
+      - name: Build
+        run: west zmk-build tests/zmk-config -af web_e2e
+      - name: Upload DUT ELF
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-e2e-dut-elf
+          path: build/web_e2e/zephyr/zmk.elf
+
+  e2e:
+    name: Browser E2E
+    needs: build-dut
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install dependencies
+        working-directory: web
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Download DUT ELF
+        uses: actions/download-artifact@v4
+        with:
+          name: web-e2e-dut-elf
+          path: fw
+      # Boots the ELF in Renode, serves its Studio RPC (over the emulated USB
+      # CDC) to the browser, and runs the Playwright specs against it. The web
+      # UI itself is built and served by the Playwright config's webServer.
+      #
+      # Keep the ref in sync with the zmk-west-commands revision in
+      # west/west-dependency/west-test-dependency.yml.
+      - uses: cormoran/zmk-west-commands/.github/actions/zmk-web-e2e@main
+        with:
+          elf-path: fw/zmk.elf
+          working-directory: web
+          run: npm run e2e
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: web/e2e/test-results

@@ -50,8 +50,10 @@ Then, in order:
   `test.py`; a Renode test in `tests/renode/` for anything that must boot
   and exercise real RPC behavior; a BLE (BabbleSim) test in
   `tests/ble/<group>/<case>` when the feature touches BLE, split keyboards,
-  or the Studio BLE GATT transport. See README.md's "Hardware-free Renode
-  testing" / "Running BLE (BabbleSim) tests" sections.
+  or the Studio BLE GATT transport; a web end-to-end case in `web/e2e/` when
+  the feature adds web UI a user drives. See README.md's "Hardware-free Renode
+  testing" / "Web UI end-to-end testing" / "Running BLE (BabbleSim) tests"
+  sections.
 - For module-owned settings, suggest and prefer
   https://github.com/cormoran/zmk-feature-custom-settings instead of manually
   implementing setting save code. It provides a typed settings registry and
@@ -81,4 +83,7 @@ python3 scripts/init_module.py --verify-only
 west zmk-renode-test tests/renode --mode wired-split \
     --elf build/usb_wired_central/zephyr/zmk.elf \
     --peripheral-elf build/usb_wired_peripheral/zephyr/zmk.elf
+# Web UI end-to-end test: the real web UI in a browser against the real firmware
+# in Renode (see README.md's "Web UI end-to-end testing")
+west zmk-web-e2e --elf build/web_e2e/zephyr/zmk.elf -- npm --prefix web run e2e
 ```

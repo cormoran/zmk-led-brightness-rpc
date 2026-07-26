@@ -103,6 +103,16 @@ class WestCommandsTests(unittest.TestCase):
                     ],
                     device=[],
                 ),
+                # DUT of the web UI end-to-end test (web/e2e/): as
+                # module_template_board_with_rpc, but unlocked -- see build.yaml.
+                "web_e2e": ConfigAndDeviceTree(
+                    config=[
+                        "CONFIG_ZMK_STUDIO=y",
+                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "# CONFIG_ZMK_STUDIO_LOCKING is not set",
+                    ],
+                    device=[],
+                ),
                 "custom_settings_board": ConfigAndDeviceTree(
                     config=[
                         # Verify that zmk-feature-custom-settings is present and enabled
