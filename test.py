@@ -10,15 +10,23 @@ from pathlib import Path
 from dataclasses import dataclass
 
 THIS_DIR = Path(__file__).parent.resolve()
-TEST_BUILD_DIR_NAME = "tests-zmk-module-template-with-custom-studio-rpc"
+TEST_BUILD_DIR_NAME = "tests-zmk-led-brightness"
+CUSTOM_SETTINGS_MODULE = "dependencies/zmk-feature-custom-settings"
 
 
-def run_west(args: list[str]) -> subprocess.CompletedProcess[str]:
+def run_west(
+    args: list[str], env: dict[str, str] | None = None
+) -> subprocess.CompletedProcess[str]:
+    command_env = os.environ.copy()
+    if env:
+        command_env.update(env)
+
     return subprocess.run(
         ["west", *args],
         capture_output=True,
         text=True,
         cwd=THIS_DIR,
+        env=command_env,
     )
 
 
@@ -51,7 +59,19 @@ class WestCommandsTests(unittest.TestCase):
         test_build_dir = self.BUILD_DIR / TEST_BUILD_DIR_NAME
         shutil.rmtree(test_build_dir, ignore_errors=True)
 
-        result = run_west(["zmk-test", "tests", "-m", ".", "-d", str(test_build_dir)])
+        native_test_modules = ";".join(
+            str(path)
+            for path in (
+                THIS_DIR,
+                THIS_DIR / CUSTOM_SETTINGS_MODULE,
+                THIS_DIR / "dependencies/zmk/app/module",
+                THIS_DIR / "dependencies/zmk/app/keymap-module",
+            )
+        )
+        result = run_west(
+            ["zmk-test", "tests", "-m", ".", "-d", str(test_build_dir)],
+            {"ZEPHYR_EXTRA_MODULES": native_test_modules},
+        )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("PASS: studio", result.stdout, result.stdout + result.stderr)
         self.assertNotIn("FAILED: ", result.stdout, result.stdout + result.stderr)
@@ -76,50 +96,52 @@ class WestCommandsTests(unittest.TestCase):
     def test_zmk_build(self):
         self._test_zmk_build(
             {
-                "module_template_board_feature_disabled": ConfigAndDeviceTree(
+                "led_brightness_board_feature_disabled": ConfigAndDeviceTree(
                     config=[
                         'CONFIG_ZMK_KEYBOARD_NAME="Module Test"',
                         "CONFIG_ZMK_USB=y",
                         "CONFIG_ZMK_BLE=y",
-                        "# CONFIG_ZMK_TEMPLATE_FEATURE is not set",
+                        "# CONFIG_ZMK_LED_BRIGHTNESS is not set",
                     ],
                     device=[
                         "DT_COMPAT_HAS_OKAY_zmk_keymap",
                     ],
                 ),
-                "module_template_board_with_rpc": ConfigAndDeviceTree(
+                "led_brightness_board_with_rpc": ConfigAndDeviceTree(
                     config=[
                         "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y",
+                        "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                     ],
                     device=[],
                 ),
-                "module_template_board_without_rpc": ConfigAndDeviceTree(
+                "led_brightness_board_without_rpc": ConfigAndDeviceTree(
                     config=[
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS=y",
+                        "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                         "# CONFIG_ZMK_STUDIO is not set",
-                        NotFound("CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC"),
+                        NotFound("CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC"),
                     ],
                     device=[],
                 ),
                 # DUT of the web UI end-to-end test (web/e2e/): as
-                # module_template_board_with_rpc, but unlocked -- see build.yaml.
+                # led_brightness_board_with_rpc, but unlocked -- see build.yaml.
                 "web_e2e": ConfigAndDeviceTree(
                     config=[
                         "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y",
+                        "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                         "# CONFIG_ZMK_STUDIO_LOCKING is not set",
                     ],
                     device=[],
                 ),
                 "custom_settings_board": ConfigAndDeviceTree(
                     config=[
-                        # Verify that zmk-feature-custom-settings is present and enabled
-                        "zmk-feature-custom-settings",
                         "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y",
                         "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                         "CONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y",
                         "CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=128",
@@ -136,8 +158,9 @@ class WestCommandsTests(unittest.TestCase):
                 "usb_wired_central": ConfigAndDeviceTree(
                     config=[
                         "CONFIG_ZMK_STUDIO=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE=y",
-                        "CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS=y",
+                        "CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y",
+                        "CONFIG_ZMK_CUSTOM_SETTINGS=y",
                         "CONFIG_ZMK_SPLIT=y",
                         "CONFIG_ZMK_SPLIT_ROLE_CENTRAL=y",
                         "CONFIG_ZMK_USB=y",
@@ -150,7 +173,7 @@ class WestCommandsTests(unittest.TestCase):
                         "CONFIG_ZMK_SPLIT=y",
                         "# CONFIG_ZMK_SPLIT_ROLE_CENTRAL is not set",
                         "# CONFIG_ZMK_STUDIO is not set",
-                        "# CONFIG_ZMK_TEMPLATE_FEATURE is not set",
+                        "# CONFIG_ZMK_LED_BRIGHTNESS is not set",
                         "# CONFIG_ZMK_BLE is not set",
                     ],
                     device=[],
@@ -165,7 +188,18 @@ class WestCommandsTests(unittest.TestCase):
         for artifact in artifacts_and_expected_build_params.keys():
             shutil.rmtree(self.BUILD_DIR / artifact, ignore_errors=True)
 
-        result = run_west(["zmk-build", "tests/zmk-config", "-q"])
+        result = run_west(
+            [
+                "zmk-build",
+                "tests/zmk-config",
+                "-m",
+                ".",
+                CUSTOM_SETTINGS_MODULE,
+                "-P",
+                "1",
+                "-q",
+            ]
+        )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
         for artifact, entries in artifacts_and_expected_build_params.items():

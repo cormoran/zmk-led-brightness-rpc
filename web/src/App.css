@@ -1,77 +1,128 @@
 .app {
-  max-width: 800px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 3rem 1.25rem;
+}
+
+.app-header {
+  margin-bottom: 2rem;
+}
+
+.app-header h1,
+.card h2 {
+  margin: 0;
+}
+
+.app-header > p:last-child {
+  color: #566074;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #5969db;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .card {
+  margin-bottom: 1rem;
   padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #dce0eb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 28px rgb(23 31 66 / 6%);
+}
+
+.connection-card,
+.brightness-heading,
+.range-scale {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .btn {
-  padding: 0.5rem 1rem;
+  padding: 0.65rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
+.btn-primary {
+  color: #fff;
+  background: #4f46e5;
+}
+
+.btn-secondary {
+  color: #343b50;
+  background: #e9ebf3;
+}
+
 .btn:disabled {
-  opacity: 0.6;
   cursor: not-allowed;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 1rem 0;
-}
-
-.response-box {
-  margin-top: 1rem;
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-}
-
-.response-box pre {
-  margin: 0;
-  overflow-x: auto;
+  opacity: 0.6;
 }
 
 .connect-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-}
-
-.hint-message {
-  margin-top: 0.75rem;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.locked-banner {
-  padding: 0.5rem 0.75rem;
-  margin: 1rem 0;
-  border: 1px solid #e0a800;
-  border-radius: 4px;
-  background: #fff8e1;
-}
-
-.locked-banner p {
-  margin: 0;
-}
-
-.unlock-prompt {
   margin-top: 1rem;
 }
 
-.unlock-prompt p {
-  margin-top: 0;
+.hint-message,
+.app-footer,
+.range-scale {
+  color: #65708a;
+  font-size: 0.9rem;
 }
 
-.template-credit {
-  font-size: 0.85rem;
-  color: #666;
+.brightness-card output {
+  min-width: 4.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  color: #3730a3;
+  background: #edeeff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.range-label {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 1.75rem;
+  font-weight: 600;
+}
+
+.range-label input {
+  width: 100%;
+  accent-color: #4f46e5;
+}
+
+.range-scale {
+  margin: 0.25rem 0 1.5rem;
+}
+
+.warning-message {
+  color: #9a6500;
+}
+
+.error-message {
+  color: #b42318;
+}
+
+.status-message {
+  margin-bottom: 0;
+  color: #087443;
+}
+
+.app-footer {
+  margin-top: 2rem;
+  text-align: center;
 }

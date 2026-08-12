@@ -19,11 +19,9 @@ import { test, expect } from "@playwright/test";
 const SHIM_URL = process.env.ZMK_WEB_E2E_SHIM_URL;
 // CONFIG_ZMK_KEYBOARD_NAME of the DUT (tests/zmk-config/config/tester_xiao.conf).
 const DEVICE_NAME = process.env.ZMK_WEB_E2E_DEVICE_NAME || "Module Test";
-const SAMPLE_VALUE = "42";
-// See handle_sample_request() in src/studio/template_handler.c.
-const EXPECTED_RESPONSE = `Hello from firmware! Received: ${SAMPLE_VALUE}`;
+const BRIGHTNESS = "62";
 
-test("the web UI round-trips the custom RPC with real firmware", async ({
+test("the web UI saves LED brightness through real firmware", async ({
   page,
   request,
 }) => {
@@ -41,15 +39,22 @@ test("the web UI round-trips the custom RPC with real firmware", async ({
   // completes the Studio handshake against the firmware, and the app renders
   // the name the firmware reported.
   await page.getByRole("button", { name: /Connect USB/ }).click();
-  await expect(page.getByText(`Connected to: ${DEVICE_NAME}`)).toBeVisible();
+  await expect(page.getByRole("heading", { name: DEVICE_NAME })).toBeVisible();
 
   // The firmware registered this module's custom subsystem: the app found it
   // and rendered its panel (it renders a "not found" warning otherwise).
-  await expect(page.getByRole("heading", { name: "RPC Test" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "LED brightness", exact: true })
+  ).toBeVisible();
 
-  // The module's own RPC, end to end: the app encodes a SampleRequest, the
-  // firmware's handler answers, and the decoded response reaches the DOM.
-  await page.getByLabel("Value:").fill(SAMPLE_VALUE);
-  await page.getByRole("button", { name: /Send Request/ }).click();
-  await expect(page.getByText(EXPECTED_RESPONSE)).toBeVisible();
+  // The module's own RPC, end to end: the app reads the stored value, sends a
+  // SetBrightness request, and the firmware persists the requested value.
+  const brightness = page.getByLabel("Brightness");
+  await brightness.fill(BRIGHTNESS);
+  await expect(brightness).toHaveValue(BRIGHTNESS);
+  await page.getByRole("button", { name: /Save brightness/ }).click();
+  await expect(
+    page.getByText("Brightness saved to your keyboard.")
+  ).toBeVisible();
+  await expect(page.getByText("62%")).toBeVisible();
 });

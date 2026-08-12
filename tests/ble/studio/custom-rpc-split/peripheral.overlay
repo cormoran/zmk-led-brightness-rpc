@@ -1,4 +1,2 @@
-/* No scripted key events: the peripheral only connects to the central so that
- * (a) the Studio RPC round trip is exercised while split BLE is active and
- * (b) the sample RPC's value reaches this peripheral over the split
- * event-relay (asserted via its log line in events.snapshot). */
+/* No scripted key events: the peripheral only connects so the Studio RPC
+ * round trip is exercised while split BLE is active. */
