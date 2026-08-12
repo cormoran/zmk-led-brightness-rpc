@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package cormoran.led_brightness;
+
+message GetBrightnessRequest {}
+
+message SetBrightnessRequest { int32 value = 1; }
+
+message BrightnessResponse {
+    int32 value = 1;
+    bool device_available = 2;
+}
+
+message Request {
+    oneof request_type {
+        GetBrightnessRequest get_brightness = 1;
+        SetBrightnessRequest set_brightness = 2;
+    }
+}
+
+message ErrorResponse { string message = 1; }
+
+message Response {
+    oneof response_type {
+        ErrorResponse error = 1;
+        BrightnessResponse brightness = 2;
+    }
+}

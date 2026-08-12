@@ -1,14 +1,13 @@
 zephyr_include_directories(include)
-if(CONFIG_ZMK_TEMPLATE_FEATURE)
-    # target_sources(app PRIVATE ...)
 
-    # Split-relay sample: compiled into BOTH split roles, gated on ZMK's own
-    # relay Kconfig -- see include/your-name/template/template_relay.h.
-    if(CONFIG_ZMK_SPLIT_RELAY_EVENT)
-        target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/split/template_relay.c)
-    endif()
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings/CMakeLists.txt)
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings)
+endif()
 
-    if(CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC)
+if(CONFIG_ZMK_LED_BRIGHTNESS)
+    target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/led_brightness.c)
+
+    if(CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC)
         file(GLOB C_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/studio/*.c)
         target_sources(app PRIVATE ${C_FILES})
 

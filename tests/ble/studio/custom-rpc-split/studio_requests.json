@@ -9,8 +9,8 @@
       "call": {
         "subsystemIndex": 0,
         "payload": {
-          "$type": "your_name.template.Request",
-          "sample": { "value": 42 }
+          "$type": "cormoran.led_brightness.Request",
+          "setBrightness": { "value": 62 }
         }
       }
     }

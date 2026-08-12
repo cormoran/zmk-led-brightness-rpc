@@ -1,15 +1,13 @@
-config ZMK_TEMPLATE_FEATURE
-    bool "Enable template feature"
+rsource "dependencies/zmk-feature-custom-settings/Kconfig"
 
-if ZMK_TEMPLATE_FEATURE
+config ZMK_LED_BRIGHTNESS
+    bool "Persisted keyboard LED brightness"
+    select ZMK_CUSTOM_SETTINGS
 
-config ZMK_TEMPLATE_FEATURE_STUDIO_RPC
-    bool "Enable template feature custom Studio RPC"
+if ZMK_LED_BRIGHTNESS
+
+config ZMK_LED_BRIGHTNESS_STUDIO_RPC
+    bool "Control LED brightness through ZMK Studio"
     depends on ZMK_STUDIO
-
-# The split-relay sample (src/split/template_relay.c) has no Kconfig of its
-# own: it follows ZMK's CONFIG_ZMK_SPLIT_RELAY_EVENT directly. Enable that
-# explicitly on BOTH split halves to compile it (the central additionally
-# needs ZMK_TEMPLATE_FEATURE_STUDIO_RPC for the RPC that triggers the relay).
 
 endif

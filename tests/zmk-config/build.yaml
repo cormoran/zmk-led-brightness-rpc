@@ -1,34 +1,34 @@
 include:
-  - artifact: module_template_board_feature_disabled
+  - artifact: led_brightness_board_feature_disabled
     board: xiao_ble//zmk
     shield: tester_xiao
 
-  - artifact: module_template_board_with_rpc
+  - artifact: led_brightness_board_with_rpc
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_LED_BRIGHTNESS=y -DCONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y
     snippet: studio-rpc-usb-uart
 
-  - artifact: module_template_board_without_rpc
+  - artifact: led_brightness_board_without_rpc
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_TEMPLATE_FEATURE=y
+    cmake-args: -DCONFIG_ZMK_LED_BRIGHTNESS=y
 
   # DUT for the web UI end-to-end test (see web/e2e/ and README.md's "Web UI
   # end-to-end testing"): the same real studio-rpc-usb-uart image as
-  # module_template_board_with_rpc -- one machine, so it boots and enumerates
+  # led_brightness_board_with_rpc -- one machine, so it boots and enumerates
   # USB fast -- but with Studio locking OFF. An emulator has no key to press
   # &studio_unlock with, and the web UI disables its controls while locked.
   - artifact: web_e2e
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_STUDIO_LOCKING=n -DCONFIG_ZMK_LED_BRIGHTNESS=y -DCONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y
     snippet: studio-rpc-usb-uart
 
   - artifact: custom_settings_board
     board: xiao_ble//zmk
     shield: tester_xiao
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_LED_BRIGHTNESS=y -DCONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y -DCONFIG_ZMK_CUSTOM_SETTINGS=y -DCONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
     snippet: studio-rpc-usb-uart
 
   # Hardware-free Renode testing (see README.md) -- the `wired-split` mode of
@@ -47,7 +47,7 @@ include:
   - artifact: usb_wired_central
     board: xiao_ble//zmk
     shield: renode_usb_wired_split
-    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_TEMPLATE_FEATURE=y -DCONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
+    cmake-args: -DCONFIG_ZMK_STUDIO=y -DCONFIG_ZMK_LED_BRIGHTNESS=y -DCONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y
     snippets:
       - studio-rpc-usb-uart
 

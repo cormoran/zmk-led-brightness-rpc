@@ -1,236 +1,78 @@
-# cormoran's ZMK Module Template for ZMK (with Custom Studio RPC)
+# ZMK LED Brightness
 
-![ZMK Version](https://img.shields.io/badge/ZMK-master-blue)
-[![Test](https://github.com/cormoran/zmk-module-template/actions/workflows/zmk-module.yml/badge.svg?branch=main)](https://github.com/cormoran/zmk-module-template/actions/workflows/zmk-module.yml) [![Devcontainer](https://github.com/cormoran/zmk-module-template/actions/workflows/devcontainer.yml/badge.svg?branch=main)](https://github.com/cormoran/zmk-module-template/actions/workflows/devcontainer.yml)
+[![Web UI](https://github.com/cormoran/zmk-led-brightness-rpc/actions/workflows/web-ui.yml/badge.svg)](https://github.com/cormoran/zmk-led-brightness-rpc/actions/workflows/web-ui.yml)
+[![ZMK module](https://github.com/cormoran/zmk-led-brightness-rpc/actions/workflows/zmk-module.yml/badge.svg)](https://github.com/cormoran/zmk-led-brightness-rpc/actions/workflows/zmk-module.yml)
 
-This repository contains a template for a ZMK module with Web UI using the **unofficial** custom ZMK Studio RPC protocol.
+Control a ZMK keyboard's LED brightness in the browser and keep that value on
+the keyboard. The module supports either ZMK backlight or RGB underglow; it
+does not provide an LED driver or devicetree configuration itself.
 
-It's extended from ZMK official template with [zmk-west-commands](https://github.com/cormoran/zmk-west-commands), test code template, coding agent support, and custom Studio RPC protocol support.
+The Web UI is published at <https://cormoran.github.io/zmk-led-brightness-rpc/>.
+It communicates with the keyboard using the unofficial custom ZMK Studio RPC
+protocol, so use the matching patched ZMK branch.
 
-## Summary
+## Install in a ZMK config
 
-This template includes:
+Add the module and patched ZMK to `config/west.yml`:
 
-- **Firmware**: Sample custom Studio RPC handler (`src/studio/template_handler.c`)
-- **Protocol**: Protobuf definition (`proto/your-name/template/template.proto`)
-- **Web UI**: React + TypeScript app (`web/`) using [@cormoran/zmk-studio-react-hook](https://github.com/cormoran/react-zmk-studio)
-- **Tests**: Firmware unit tests (`tests/studio/`) and build tests (`tests/zmk-config/`)
+```yaml
+manifest:
+  remotes:
+    - name: cormoran
+      url-base: https://github.com/cormoran
+  projects:
+    - name: zmk-led-brightness-rpc
+      remote: cormoran
+      revision: main
+      import: true
+    - name: zmk
+      remote: cormoran
+      revision: main+custom-studio-protocol
+      import:
+        file: app/west.yml
+```
 
-Read through the [ZMK Module Creation](https://zmk.dev/docs/development/module-creation) page for details on how to configure this template.
+Enable the module in your shield `.conf` file. Enable one LED implementation
+as usual in the same keyboard configuration.
 
-## More Info
+```conf
+CONFIG_ZMK_CUSTOM_SETTINGS=y
+CONFIG_ZMK_LED_BRIGHTNESS=y
 
-For more info on modules, you can read through through the [Zephyr modules page](https://docs.zephyrproject.org/3.5.0/develop/modules.html) and [ZMK's page on using modules](https://zmk.dev/docs/features/modules). [Zephyr's west manifest page](https://docs.zephyrproject.org/3.5.0/develop/west/manifest.html#west-manifests) may also be of use.
+CONFIG_ZMK_STUDIO=y
+CONFIG_ZMK_LED_BRIGHTNESS_STUDIO_RPC=y
+CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=128
+CONFIG_ZMK_LOW_PRIORITY_THREAD_STACK_SIZE=2048
+```
 
-## Module User Guide
+`CONFIG_ZMK_CUSTOM_SETTINGS` selects Zephyr settings storage. The `brightness`
+value is constrained to 0–100, defaults to 50, and is written in persistent
+mode. It is applied after settings have loaded at boot, and every browser
+update is applied immediately.
 
-1. Add dependency to your `config/west.yml`. Note: this module requires a patched ZMK with custom Studio RPC support.
+## Use the Web UI
 
-   ```yml
-   manifest:
-       remotes:
-           ...
-           - name: cormoran
-           url-base: https://github.com/cormoran
-       projects:
-           ...
-           - name: zmk-module-template
-           remote: cormoran
-           revision: main+custom-studio-protocol # or latest commit hash
-           import: true
-           ...
-           # Required: patched ZMK with custom Studio RPC support
-           - name: zmk
-           remote: cormoran
-           revision: main+custom-studio-protocol
-           import:
-               file: app/west.yml
-   ```
+1. Flash firmware built with the options above.
+2. Open <https://cormoran.github.io/zmk-led-brightness-rpc/> in Chrome or
+   another Chromium-based browser over HTTPS.
+3. Connect through USB or Bluetooth. If Bluetooth discovery is locked, press
+   the keyboard's `&studio_unlock` key first.
+4. Move the slider and choose **Save brightness**.
 
-2. Enable flags in your `config/<shield>.conf`
+The app reports when the firmware has neither backlight nor RGB underglow
+enabled. In that case it still saves the value, so it will apply once an LED
+implementation is enabled.
 
-   ```conf
-   CONFIG_ZMK_TEMPLATE_FEATURE=y
+## Development
 
-   # Optionally enable custom Studio RPC
-   CONFIG_ZMK_STUDIO=y
-   CONFIG_ZMK_TEMPLATE_FEATURE_STUDIO_RPC=y
-   CONFIG_ZMK_CUSTOM_SETTINGS=y
-   CONFIG_ZMK_CUSTOM_SETTINGS_STUDIO_RPC=y
-   CONFIG_ZMK_STUDIO_RPC_RX_BUF_SIZE=128
-   CONFIG_ZMK_LOW_PRIORITY_THREAD_STACK_SIZE=2048
-   ```
-
-3. Implement your custom protocol by editing:
-   - `proto/your-name/template/template.proto` — message types
-   - `src/studio/template_handler.c` — firmware RPC handler
-   - `web/src/App.tsx` — web UI
-
-### Web UI
-
-See [web/README.md](./web/README.md) for web UI development instructions.
-
-### Publishing Web UI
-
-**GitHub Pages**: Merge a pull request into `main+custom-studio-protocol` to deploy to `https://<account>.github.io/<repo>/`.
-
-**Cloudflare Workers (PR previews)**: Configure `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets. Previews are optional — when the secrets are absent (e.g. a fresh repo created from this template), the workflow stays green and simply comments on the PR explaining how to enable them instead of deploying.
-
-## Module Development Guide
-
-### Initialize from template
-
-Right after creating a repository from this template, run the initialization
-script and follow the checklist in [AGENTS.md](./AGENTS.md):
+The repository is intended to be opened with the supplied devcontainer. It
+initializes the isolated west workspace and installs the pre-commit hook.
 
 ```bash
-python3 scripts/init_module.py --namespace <your-github-name> --module <feature-name>
-```
-
-It replaces every template placeholder (identifiers, paths, URLs, artifact
-names) and verifies nothing is left (`--verify-only` re-checks at any time).
-
-### Setup for running test
-
-#### Option0: Dev container (recommended)
-
-Open this repository in VS Code with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers). The container automatically initializes the west workspace using the isolated layout.
-
-#### Option1: west workspace directory layout
-
-Set west topdir as parent of repository root and download dependencies under `../`.
-This layout is useful to reduce disk usage by sharing dependencies with other zephyr modules.
-The build result is located in `../build`.
-
-```bash
-mkdir west-workspace
-cd west-workspace # this directory becomes west workspace root (topdir)
-git clone <this repository>
-# rm -r .west # if exists to reset workspace
-west init -l . --mf west/west-test-workspace.yml
-west update --narrow
-west zephyr-export
-```
-
-#### Option2: isolated directory layout
-
-Set west topdir as repository root and download dependencies under `./dependencies`.
-This layout is useful if you don't want to share dependencies to other zephyr modules.
-Dev container and github actions uses this layout.
-The build result is located in `./build`.
-
-```bash
-git clone <this repository>
-cd <cloned directory>
-# Idempotent helper shared with the devcontainer and CI: runs
-# `west init -l west --mf west-test-isolated.yml`, `west update --narrow`,
-# and `west zephyr-export`.
-bash scripts/setup_workspace.sh
-```
-
-### Pre-commit
-
-Every commit need to pass pre-commit verification. The verification contains formatting code and running tests.
-
-```
-pip install pre-commit
-pre-commit install
-
-# Run pre-commit manually
-pre-commit run --all-files
-# Run for git staged files
-pre-commit run
-```
-
-### Running Test
-
-```bash
-# Run unit test + build test and verify the results
 python3 -m unittest
-# Run build test directly
-west zmk-build tests/zmk-config
-# Run unit test directly
-west zmk-test tests -m .
-# Run web tests
-cd web && npm test
+cd web && npm ci && npm run generate && npm test && npm run build
 ```
 
-### Hardware-free Renode testing
-
-CI boots the firmware in the [Renode](https://renode.io/) emulator (a `Build`
-job step) and runs `tests/renode/` -- `renode_test.py` is the file a module
-built from this template rewrites for its own RPC surface. It uses
-`west zmk-renode-test`'s **`wired-split`** mode: a wired split pair whose central
-answers Studio RPC over the emulated **USB CDC** while the wired split link
-forwards key events, covering both the central-only Studio path and the split
-path. The ELFs are the `usb_wired_central` / `usb_wired_peripheral` artifacts in
-`tests/zmk-config/build.yaml`. Locally:
-
-```bash
-west zmk-build tests/zmk-config -af usb_wired_central
-west zmk-build tests/zmk-config -af usb_wired_peripheral
-west zmk-renode-test tests/renode --mode wired-split \
-    --elf build/usb_wired_central/zephyr/zmk.elf \
-    --peripheral-elf build/usb_wired_peripheral/zephyr/zmk.elf
-```
-
-The module's own split-relay *sample* (the central forwarding a value to the
-peripheral) is not exercised here -- ZMK's relay-over-wired transport is newer
-than this repo's pinned zmk, so it is covered by the BabbleSim BLE test instead
-(see below). Details (the mode + `ZMK_RENODE_*` env contract): see
-[zmk-west-commands' README, `west zmk-renode-test`](https://github.com/cormoran/zmk-west-commands#west-zmk-renode-test)
-and [docs/renode-testing.md](https://github.com/cormoran/zmk-west-commands/blob/main/docs/renode-testing.md).
-
-### Web UI end-to-end testing
-
-`web/e2e/` runs the **web UI itself**, in a headless browser, against this
-module's **real firmware** in Renode -- no hardware (CI's `Web UI E2E Test`
-workflow). `west zmk-web-e2e` boots the DUT, serves its Studio RPC (over the
-emulated USB CDC) to the browser and hands the test a `navigator.serial` shim,
-so the app, its transport, the RPC framing and the firmware are all real -- only
-the browser's serial driver is faked. `rpc.spec.ts` connects through the app's
-own button and round-trips the module's custom RPC; rewrite its assertions for
-your own requests. Locally:
-
-```bash
-west zmk-build tests/zmk-config -af web_e2e
-west zmk-web-e2e --elf build/web_e2e/zephyr/zmk.elf -- npm --prefix web run e2e
-```
-
-The DUT (the `web_e2e` artifact) is the real `studio-rpc-usb-uart` image with
-Studio locking off -- an emulator has no key to press `&studio_unlock` with.
-Details (the shim's permission model, the `ZMK_WEB_E2E_*` env contract,
-debugging): see
-[zmk-west-commands' docs/zmk-web-e2e.md](https://github.com/cormoran/zmk-west-commands/blob/main/docs/zmk-web-e2e.md).
-
-### Running BLE (BabbleSim) tests
-
-`tests/ble/` runs real `nrf52_bsim` firmware on a simulated radio (x86 Linux
-only; CI's `ble-test` job). The one case, `studio/custom-rpc-split`, checks --
-in a split central+peripheral topology -- that the custom Studio RPC answers
-over the BLE GATT transport while the split link is active, AND that the
-split-relay sample delivers the RPC value to the peripheral (asserted via the
-peripheral's log line). The Studio host side is one declarative
-`studio_requests.json` -- no host C code in this module. Locally:
-
-```bash
-west zmk-ble-test tests/ble -m .   # --auto-accept regenerates snapshots
-```
-
-Details (case-file conventions, JSON DSL, `{prefix}`/`{studio_host}`,
-BabbleSim setup, peripheral assertion): see
-[zmk-west-commands' README, `west zmk-ble-test`](https://github.com/cormoran/zmk-west-commands#west-zmk-ble-test).
-
-### Sync changes from template
-
-Run `Actions > Sync Changes in Template > Run workflow` to get the latest template changes as a pull request.
-
-If the template contains changes in `.github/workflows/*`, register a GitHub personal access token as `GH_TOKEN` repository secret (`repo` + `workflow` scopes).
-
-### Coding agent on actions
-
-Actions for github copilot and claude are available.
-
-- Mention `@copilot`
-- Setup `ANTHROPIC_API_KEY` secret and mention `@claude`
-  - Or fix [claude.yml](./github/workflows/claude.yml) to use `CLAUDE_CODE_OAUTH_TOKEN`
+The test suite includes native-sim, firmware build, Renode, BLE, and browser
+end-to-end workflows. See `tests/renode/` and `web/e2e/` for the emulator-based
+commands used by CI.

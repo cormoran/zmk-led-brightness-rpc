@@ -52,7 +52,7 @@ except ImportError:  # pragma: no cover - convenience fallback for local dev
         raise
 
 
-SUBSYSTEM_IDENTIFIER = "your_name__template"
+SUBSYSTEM_IDENTIFIER = "cormoran__led_brightness"
 # This template registers exactly one custom subsystem, so its index is
 # deterministically 0.
 KNOWN_SUBSYSTEM_INDEX = 0
@@ -61,9 +61,7 @@ KNOWN_SUBSYSTEM_INDEX = 0
 # test_custom_rpc_invalid_index_dispatch).
 INVALID_SUBSYSTEM_INDEX = 99
 
-SAMPLE_VALUE = 42
-# See handle_sample_request() in src/studio/template_handler.c.
-EXPECTED_SAMPLE_RESPONSE = f"Hello from firmware! Received: {SAMPLE_VALUE}"
+BRIGHTNESS = 62
 
 # attach_dual_cdc_bridge's default bridge name -> monitor object prefix.
 BRIDGE_NAME = "bridge"
@@ -81,7 +79,7 @@ class RenodeWiredSplitModuleTests(unittest.TestCase):
 
     renode_path: str
     studio_pb2 = None
-    template_pb2 = None
+    led_brightness_pb2 = None
 
     @classmethod
     def setUpClass(cls):
@@ -130,16 +128,22 @@ class RenodeWiredSplitModuleTests(unittest.TestCase):
         studio_proto_dir = renode_harness.find_studio_proto_dir(REPO_ROOT)
         cls.studio_pb2 = renode_harness.load_studio_pb2(studio_proto_dir)
 
-        # This module's own proto (package your_name.template) -- protoc
-        # normalizes the hyphenated "your-name" path to the "your_name" package.
+        # This module's own proto (package cormoran.led_brightness). Protoc
+        # normalizes the hyphenated directory name to the Python package name.
         out_dir = renode_harness.compile_protos(
-            [REPO_ROOT / "proto" / "your-name" / "template" / "template.proto"],
+            [
+                REPO_ROOT
+                / "proto"
+                / "cormoran"
+                / "led-brightness"
+                / "led_brightness.proto"
+            ],
             include_dirs=[REPO_ROOT / "proto"],
         )
         sys.path.insert(0, str(out_dir))
-        import your_name.template.template_pb2 as template_pb2  # type: ignore
+        import cormoran.led_brightness.led_brightness_pb2 as led_brightness_pb2  # type: ignore
 
-        cls.template_pb2 = template_pb2
+        cls.led_brightness_pb2 = led_brightness_pb2
 
         # Boot the pair and attach the DualCdcAcmBridge USB host to reach the
         # central's Studio CDC (the same steps run_usb_wired_smoke uses).
@@ -234,13 +238,14 @@ class RenodeWiredSplitModuleTests(unittest.TestCase):
 
     # -- The real thing: this module's own custom RPC, over USB --------------
 
-    def test_custom_rpc_sample_round_trip_over_usb(self):
-        """Send this module's own SampleRequest to its registered subsystem
-        (index 0) and assert the SampleResponse comes back over the central's
-        USB CDC."""
-        inner_req = self.template_pb2.Request()
-        inner_req.sample.value = SAMPLE_VALUE
-        self._send_call(KNOWN_SUBSYSTEM_INDEX, inner_req.SerializeToString(), request_id=1)
+    def test_custom_rpc_brightness_round_trip_over_usb(self):
+        """Read and then persist brightness through this module's own custom
+        RPC over the central's USB CDC."""
+        inner_req = self.led_brightness_pb2.Request()
+        inner_req.get_brightness.SetInParent()
+        self._send_call(
+            KNOWN_SUBSYSTEM_INDEX, inner_req.SerializeToString(), request_id=1
+        )
 
         resp = self._read_response()
         self.assertEqual(resp.WhichOneof("type"), "request_response")
@@ -252,10 +257,20 @@ class RenodeWiredSplitModuleTests(unittest.TestCase):
         self.assertEqual(custom_resp.WhichOneof("response_type"), "call")
         self.assertEqual(custom_resp.call.subsystem_index, KNOWN_SUBSYSTEM_INDEX)
 
-        inner_resp = self.template_pb2.Response()
+        inner_resp = self.led_brightness_pb2.Response()
         inner_resp.ParseFromString(custom_resp.call.payload)
-        self.assertEqual(inner_resp.WhichOneof("response_type"), "sample")
-        self.assertEqual(inner_resp.sample.value, EXPECTED_SAMPLE_RESPONSE)
+        self.assertEqual(inner_resp.WhichOneof("response_type"), "brightness")
+        self.assertEqual(inner_resp.brightness.value, 50)
+
+        set_req = self.led_brightness_pb2.Request()
+        set_req.set_brightness.value = BRIGHTNESS
+        self._send_call(
+            KNOWN_SUBSYSTEM_INDEX, set_req.SerializeToString(), request_id=2
+        )
+        set_resp = self._read_response()
+        inner_resp.ParseFromString(set_resp.request_response.custom.call.payload)
+        self.assertEqual(inner_resp.WhichOneof("response_type"), "brightness")
+        self.assertEqual(inner_resp.brightness.value, BRIGHTNESS)
 
     # The module's split-relay sample (central forwarding the value to the
     # peripheral) is covered by the BabbleSim BLE test, not here: relay-over-wired

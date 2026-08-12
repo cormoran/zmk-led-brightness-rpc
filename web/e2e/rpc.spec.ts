@@ -19,11 +19,9 @@ import { test, expect } from "@playwright/test";
 const SHIM_URL = process.env.ZMK_WEB_E2E_SHIM_URL;
 // CONFIG_ZMK_KEYBOARD_NAME of the DUT (tests/zmk-config/config/tester_xiao.conf).
 const DEVICE_NAME = process.env.ZMK_WEB_E2E_DEVICE_NAME || "Module Test";
-const SAMPLE_VALUE = "42";
-// See handle_sample_request() in src/studio/template_handler.c.
-const EXPECTED_RESPONSE = `Hello from firmware! Received: ${SAMPLE_VALUE}`;
+const BRIGHTNESS = "62";
 
-test("the web UI round-trips the custom RPC with real firmware", async ({
+test("the web UI saves LED brightness through real firmware", async ({
   page,
   request,
 }) => {
@@ -45,11 +43,20 @@ test("the web UI round-trips the custom RPC with real firmware", async ({
 
   // The firmware registered this module's custom subsystem: the app found it
   // and rendered its panel (it renders a "not found" warning otherwise).
-  await expect(page.getByRole("heading", { name: "RPC Test" })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "LED brightness" })
+  ).toBeVisible();
 
-  // The module's own RPC, end to end: the app encodes a SampleRequest, the
-  // firmware's handler answers, and the decoded response reaches the DOM.
-  await page.getByLabel("Value:").fill(SAMPLE_VALUE);
-  await page.getByRole("button", { name: /Send Request/ }).click();
-  await expect(page.getByText(EXPECTED_RESPONSE)).toBeVisible();
+  // The module's own RPC, end to end: the app reads the stored value, sends a
+  // SetBrightness request, and the firmware persists the requested value.
+  const brightness = page.getByLabel("Brightness");
+  await brightness.press("End");
+  for (let value = 100; value > Number(BRIGHTNESS); value -= 1) {
+    await brightness.press("ArrowLeft");
+  }
+  await page.getByRole("button", { name: /Save brightness/ }).click();
+  await expect(
+    page.getByText("Brightness saved to your keyboard.")
+  ).toBeVisible();
+  await expect(page.getByText("62%")).toBeVisible();
 });
