@@ -44,7 +44,7 @@ test("the web UI saves LED brightness through real firmware", async ({
   // The firmware registered this module's custom subsystem: the app found it
   // and rendered its panel (it renders a "not found" warning otherwise).
   await expect(
-    page.getByRole("heading", { name: "LED brightness" })
+    page.getByRole("heading", { name: "LED brightness", exact: true })
   ).toBeVisible();
 
   // The module's own RPC, end to end: the app reads the stored value, sends a
