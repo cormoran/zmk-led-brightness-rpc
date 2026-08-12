@@ -11,7 +11,7 @@
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static struct zmk_rpc_custom_subsystem_meta led_brightness_subsystem_meta = {
-    ZMK_RPC_CUSTOM_SUBSYSTEM_UI_URLS("https://cormoran.github.io/zmk-led-brightness/"),
+    ZMK_RPC_CUSTOM_SUBSYSTEM_UI_URLS("https://cormoran.github.io/zmk-led-brightness-rpc/"),
     // Unsecured is suggested by default to avoid unlocking in un-reliable
     // environments.
     // The web template already implements the unlock prompt/retry flow (see

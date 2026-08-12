@@ -50,10 +50,8 @@ test("the web UI saves LED brightness through real firmware", async ({
   // The module's own RPC, end to end: the app reads the stored value, sends a
   // SetBrightness request, and the firmware persists the requested value.
   const brightness = page.getByLabel("Brightness");
-  await brightness.press("End");
-  for (let value = 100; value > Number(BRIGHTNESS); value -= 1) {
-    await brightness.press("ArrowLeft");
-  }
+  await brightness.fill(BRIGHTNESS);
+  await expect(brightness).toHaveValue(BRIGHTNESS);
   await page.getByRole("button", { name: /Save brightness/ }).click();
   await expect(
     page.getByText("Brightness saved to your keyboard.")
