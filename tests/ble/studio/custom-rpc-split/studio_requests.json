@@ -10,7 +10,7 @@
         "subsystemIndex": 0,
         "payload": {
           "$type": "cormoran.led_brightness.Request",
-          "setBrightness": { "value": 62 }
+          "getBrightness": {}
         }
       }
     }

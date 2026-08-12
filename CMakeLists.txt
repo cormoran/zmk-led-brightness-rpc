@@ -1,7 +1,13 @@
 zephyr_include_directories(include)
 
-if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings/CMakeLists.txt)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings)
+# ZMK's CI harness exposes this west dependency as an extra module. Local
+# devcontainer builds only add this module itself, so include the dependency
+# directly in that case.
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings/CMakeLists.txt
+   AND NOT "${ZMK_EXTRA_MODULES}" MATCHES "zmk-feature-custom-settings"
+   AND NOT "$ENV{ZEPHYR_EXTRA_MODULES}" MATCHES "zmk-feature-custom-settings")
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/dependencies/zmk-feature-custom-settings
+                     ${CMAKE_CURRENT_BINARY_DIR}/zmk-feature-custom-settings)
 endif()
 
 if(CONFIG_ZMK_LED_BRIGHTNESS)

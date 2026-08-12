@@ -1,4 +1,4 @@
-rsource "dependencies/zmk-feature-custom-settings/Kconfig"
+osource "dependencies/zmk-feature-custom-settings/Kconfig"
 
 config ZMK_LED_BRIGHTNESS
     bool "Persisted keyboard LED brightness"
