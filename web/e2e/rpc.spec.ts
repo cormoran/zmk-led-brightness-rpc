@@ -39,7 +39,7 @@ test("the web UI saves LED brightness through real firmware", async ({
   // completes the Studio handshake against the firmware, and the app renders
   // the name the firmware reported.
   await page.getByRole("button", { name: /Connect USB/ }).click();
-  await expect(page.getByText(`Connected to: ${DEVICE_NAME}`)).toBeVisible();
+  await expect(page.getByRole("heading", { name: DEVICE_NAME })).toBeVisible();
 
   // The firmware registered this module's custom subsystem: the app found it
   // and rendered its panel (it renders a "not found" warning otherwise).
